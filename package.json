@@ -7,11 +7,13 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@workspace/eslint-config": "*",
     "@workspace/typescript-config": "*",
+    "husky": "^9.1.7",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "turbo": "^2.8.17",

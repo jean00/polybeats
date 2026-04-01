@@ -1,5 +1,5 @@
-import Header from "./components/header"
-import Metronome from "./components/metronome/metronome"
+import Header from "./components/header";
+import Metronome from "./components/metronome/metronome";
 
 export default function Page() {
   return (
@@ -19,5 +19,5 @@ export default function Page() {
       /> */}
       </main>
     </>
-  )
+  );
 }

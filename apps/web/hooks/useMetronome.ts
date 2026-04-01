@@ -1,60 +1,67 @@
-import { useState, useRef, useEffect } from "react"
-import * as Tone from "tone"
+import { useState, useRef, useEffect } from "react";
+import * as Tone from "tone";
 
-const useMetronome = () => {
-  const [isPlaying, setIsPlaying] = useState(false)
-
-  // Usiamo i Ref per mantenere la stessa istanza tra i vari render di React
-  const synthRef = useRef<Tone.Synth | null>(null)
-  const transport = Tone.getTransport()
+const useMetronome = (onBeat: (beat: number) => void) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const synthRef = useRef<Tone.Synth | null>(null);
+  const transport = Tone.getTransport();
 
   useEffect(() => {
-    // Inizializziamo il synth una sola volta e lo connettiamo all'uscita
     synthRef.current = new Tone.Synth({
       oscillator: { type: "sine" },
       envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
-    }).toDestination() // <--- FONDAMENTALE
+    }).toDestination();
 
-    // Pulizia quando il componente viene smontato
     return () => {
-      synthRef.current?.dispose()
-      transport.cancel() // Rimuove tutti i loop pianificati
-    }
-  }, [transport])
+      synthRef.current?.dispose();
+      transport.cancel();
+    };
+  }, [transport]);
 
   const start = async () => {
-    // 1. Sblocca l'audio nel browser (promessa)
-    await Tone.start()
-
-    // 2. Configura il loop (se non è già programmato)
-    transport.cancel() // Pulisce loop precedenti
+    let beatCount = 0;
+    await Tone.start();
+    transport.cancel();
     transport.scheduleRepeat((time) => {
-      // Usiamo il trigger dal Ref
-      synthRef.current?.triggerAttackRelease("C5", "16n", time)
-    }, "4n")
+      const isFirstBeat = beatCount === 0;
+      synthRef.current?.triggerAttackRelease(
+        isFirstBeat ? "C5" : "C4",
+        "16n",
+        time
+      );
+      Tone.Draw.schedule(() => {
+        onBeat(beatCount);
+        beatCount = (beatCount + 1) % 4;
+      }, time);
+    }, "4n");
 
-    // 3. Avvia il motore
-    transport.position = 0
-    transport.start()
-    setIsPlaying(true)
-  }
+    transport.position = 0;
+    transport.start();
+    setIsPlaying(true);
+  };
 
   const stop = () => {
-    transport.stop()
-    setIsPlaying(false)
-  }
+    transport.stop();
+    setIsPlaying(false);
+  };
 
   const setBpm = (newBpm: number) => {
-    transport.bpm.value = newBpm
-  }
+    transport.bpm.value = newBpm;
+  };
+
+  const setTimeSignature = (numerator: number, denominator: number) => {
+    transport.timeSignature = [numerator, denominator];
+  };
 
   return {
     isPlaying,
     start,
     stop,
     setBpm,
-    bpm: transport.bpm.value, // Restituisce il valore numerico
-  }
-}
+    bpm: transport.bpm.value,
+    timeSignature: transport.timeSignature,
+    setTimeSignature,
+  };
+};
 
-export default useMetronome
+export default useMetronome;

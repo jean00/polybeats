@@ -1,11 +1,11 @@
-"use client"
-import { Button } from "@workspace/ui/components/button"
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-import React from "react"
+"use client";
+import { Button } from "@workspace/ui/components/button";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import React from "react";
 
 const Header = () => {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   return (
     <header className="flex w-full flex-row items-center justify-between p-4">
@@ -20,7 +20,7 @@ const Header = () => {
         <span className="sr-only">Toggle theme</span>
       </Button>
     </header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;

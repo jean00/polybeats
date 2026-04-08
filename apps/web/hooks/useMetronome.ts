@@ -2,21 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import * as Tone from "tone";
 
 const useMetronome = (onBeat: (beat: number) => void) => {
+  const transport = Tone.getTransport();
+  const [bpm, setBpm] = useState(transport.bpm?.value ?? 120);
   const [isPlaying, setIsPlaying] = useState(false);
   const synthRef = useRef<Tone.Synth | null>(null);
-  const transport = Tone.getTransport();
 
-  useEffect(() => {
-    synthRef.current = new Tone.Synth({
-      oscillator: { type: "sine" },
-      envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
-    }).toDestination();
-
-    return () => {
-      synthRef.current?.dispose();
-      transport.cancel();
-    };
-  }, [transport]);
+  const updateBpm = (newBpm: number) => {
+    setBpm(newBpm);
+    transport.bpm.value = newBpm;
+  };
 
   const start = async () => {
     let beatCount = 0;
@@ -45,22 +39,39 @@ const useMetronome = (onBeat: (beat: number) => void) => {
     setIsPlaying(false);
   };
 
-  const setBpm = (newBpm: number) => {
-    transport.bpm.value = newBpm;
-  };
-
   const setTimeSignature = (numerator: number, denominator: number) => {
     transport.timeSignature = [numerator, denominator];
   };
+
+  const tapTempo = () => {
+    const currentTime = transport.seconds;
+    transport.stop().start();
+    const newBpm = currentTime > 0 ? 60 / currentTime : 120;
+    const formatNumber = Number(newBpm.toFixed(0));
+    updateBpm(formatNumber);
+  };
+
+  useEffect(() => {
+    synthRef.current = new Tone.Synth({
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
+    }).toDestination();
+
+    return () => {
+      synthRef.current?.dispose();
+      transport.cancel();
+    };
+  }, [transport]);
 
   return {
     isPlaying,
     start,
     stop,
-    setBpm,
-    bpm: transport.bpm.value,
+    setBpm: updateBpm,
+    bpm,
     timeSignature: transport.timeSignature,
     setTimeSignature,
+    tapTempo,
   };
 };
 

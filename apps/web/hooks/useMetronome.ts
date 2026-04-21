@@ -4,6 +4,7 @@ import * as Tone from "tone";
 const useMetronome = (onBeat: (beat: number) => void) => {
   const transport = Tone.getTransport();
   const [bpm, setBpm] = useState(transport.bpm?.value ?? 120);
+  const [timeSignature, setTimeSignature] = useState([4, 4]);
   const [isPlaying, setIsPlaying] = useState(false);
   const synthRef = useRef<Tone.Synth | null>(null);
 
@@ -25,7 +26,7 @@ const useMetronome = (onBeat: (beat: number) => void) => {
       );
       Tone.Draw.schedule(() => {
         onBeat(beatCount);
-        beatCount = (beatCount + 1) % 4;
+        beatCount = (beatCount + 1) % (timeSignature[0] || 4);
       }, time);
     }, "4n");
 
@@ -39,8 +40,10 @@ const useMetronome = (onBeat: (beat: number) => void) => {
     setIsPlaying(false);
   };
 
-  const setTimeSignature = (numerator: number, denominator: number) => {
+  const editTimeSignature = (numerator = 4, denominator = 4) => {
     transport.timeSignature = [numerator, denominator];
+    setTimeSignature([numerator, denominator]);
+    stop();
   };
 
   const tapTempo = () => {
@@ -69,8 +72,8 @@ const useMetronome = (onBeat: (beat: number) => void) => {
     stop,
     setBpm: updateBpm,
     bpm,
-    timeSignature: transport.timeSignature,
-    setTimeSignature,
+    timeSignature,
+    editTimeSignature,
     tapTempo,
   };
 };

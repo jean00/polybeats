@@ -6,14 +6,34 @@ import useMetronome from "@/hooks/useMetronome";
 import { PauseIcon, PlayIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import BeatsVisualizer from "./components/beats-visualizer";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+
+const timeSignatureNumerators = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const timeSignatureDenominators = [2, 4, 8, 16];
 
 const Metronome = () => {
   const [activeBeat, setActiveBeat] = useState(-1);
-  const { isPlaying, bpm, timeSignature, setBpm, start, stop, tapTempo } =
-    useMetronome((index) => {
-      setActiveBeat(index);
-      setTimeout(() => setActiveBeat(-1), 100);
-    });
+  const {
+    isPlaying,
+    bpm,
+    timeSignature,
+    editTimeSignature,
+    setBpm,
+    start,
+    stop,
+    tapTempo,
+  } = useMetronome((index) => {
+    setActiveBeat(index);
+    setTimeout(() => setActiveBeat(-1), 100);
+  });
+  const [numerator, denominator] = timeSignature;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [tempBpm, setTempBpm] = useState(bpm);
@@ -73,10 +93,47 @@ const Metronome = () => {
           </p>
         )}
       </span>
-      time signature {timeSignature}
-      {/* I 4 CERCHI */}
+      <div className="flex items-center gap-2">
+        <Select
+          defaultValue={numerator?.toString() || "4"}
+          onValueChange={(value) =>
+            editTimeSignature(Number(value), denominator)
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {timeSignatureNumerators.map((numerator) => (
+                <SelectItem key={numerator} value={numerator.toString()}>
+                  {numerator}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        /
+        <Select
+          defaultValue={denominator?.toString() || "4"}
+          onValueChange={(value) => editTimeSignature(numerator, Number(value))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {timeSignatureDenominators.map((denominator) => (
+                <SelectItem key={denominator} value={denominator.toString()}>
+                  {denominator}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
       <div className="flex gap-4">
-        {[0, 1, 2, 3].map((i) => (
+        {[...Array(numerator)].map((_, i) => (
           <BeatsVisualizer key={i} index={i} activeBeat={activeBeat} />
         ))}
       </div>
